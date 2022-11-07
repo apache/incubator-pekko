@@ -26,7 +26,7 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v6.2
 
-      - name: sbt akka-cluster-metrics/test
+      - name: sbt pekko-cluster-metrics/test
         run: |-
           sbt -jvm-opts .jvmopts-ci \
             -Djava.security.egd=file:/dev/./urandom \
