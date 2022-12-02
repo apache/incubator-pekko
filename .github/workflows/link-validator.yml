@@ -27,7 +27,7 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v6.4.0
 
-      - name: create the Akka site
+      - name: create the Pekko site
         run: sbt -Dakka.genjavadoc.enabled=true "Javaunidoc/doc; Compile/unidoc; akka-docs/paradox"
 
       - name: Install Coursier command line tool
