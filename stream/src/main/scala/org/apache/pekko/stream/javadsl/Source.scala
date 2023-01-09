@@ -18,9 +18,8 @@ import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 
-import org.reactivestreams.{ Publisher, Subscriber }
-
 import org.apache.pekko
+import org.reactivestreams.{ Publisher, Subscriber }
 import pekko.{ Done, NotUsed }
 import pekko.actor.{ ActorRef, Cancellable, ClassicActorSystemProvider }
 import pekko.annotation.ApiMayChange
@@ -340,7 +339,7 @@ object Source {
    * is failed with a [[pekko.stream.NeverMaterializedException]]
    */
   def lazySingle[T](create: Creator[T]): Source[T, NotUsed] =
-    lazySource(() => single(create.create())).mapMaterializedValue(_ => NotUsed)
+    new Source(scaladsl.Source.lazySingle(() => create.create()))
 
   /**
    * Defers invoking the `create` function to create a future element until there is downstream demand.
