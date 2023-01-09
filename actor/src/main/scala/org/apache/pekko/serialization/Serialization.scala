@@ -6,19 +6,15 @@ package org.apache.pekko.serialization
 
 import java.io.NotSerializableException
 import java.nio.ByteBuffer
-import java.util.NoSuchElementException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
-
-import scala.annotation.tailrec
+import scala.annotation.{ nowarn, tailrec }
 import scala.collection.immutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{ DynamicVariable, Failure, Try }
 import scala.util.Success
 import scala.util.control.NonFatal
-
 import com.typesafe.config.Config
-
 import org.apache.pekko
 import pekko.actor._
 import pekko.annotation.InternalApi
@@ -360,7 +356,7 @@ class Serialization(val system: ExtendedActorSystem) extends Extension {
                 clazz.getName)
             }
 
-            if (!warnUnexpectedNonAkkaSerializer(clazz, ser))
+            if (!warnUnexpectedNonPekkoSerializer(clazz, ser))
               log.debug("Using serializer [{}] for message [{}]", ser.getClass.getName, clazz.getName)
 
             ser
@@ -447,7 +443,7 @@ class Serialization(val system: ExtendedActorSystem) extends Extension {
 
     val result = sort(fromConfig ++ fromSettings)
     ensureOnlyAllowedSerializers(result.iterator.map { case (_, ser) => ser })
-    result.foreach { case (clazz, ser) => warnUnexpectedNonAkkaSerializer(clazz, ser) }
+    result.foreach { case (clazz, ser) => warnUnexpectedNonPekkoSerializer(clazz, ser) }
     result
   }
 
@@ -457,8 +453,12 @@ class Serialization(val system: ExtendedActorSystem) extends Extension {
     }
   }
 
-  private def warnUnexpectedNonAkkaSerializer(clazz: Class[_], ser: Serializer): Boolean = {
-    if (clazz.getName.startsWith("org.apache.pekko.") && !ser.getClass.getName.startsWith("org.apache.pekko.")) {
+  @nowarn("msg=deprecated")
+  private def warnUnexpectedNonPekkoSerializer(clazz: Class[_], ser: Serializer): Boolean = {
+    import scala.collection.JavaConverters._ // switch to scala.jdk.CollectionConverters once Scala 2.12 support is dropped
+    if (clazz.getName.startsWith("org.apache.pekko.") && !ser.getClass.getName.startsWith("org.apache.pekko.") &&
+      !system.settings.config.getStringList("pekko.actor.warn-non-pekko-serializer-allow-list").asScala.toSet.contains(
+        clazz.getName)) {
       log.warning(
         "Using serializer [{}] for message [{}]. Note that this serializer " +
         "is not implemented by Pekko. It's not recommended to replace serializers for messages " +
