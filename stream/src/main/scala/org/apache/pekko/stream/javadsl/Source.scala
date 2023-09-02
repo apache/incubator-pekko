@@ -25,8 +25,6 @@ import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 
-import org.reactivestreams.{ Publisher, Subscriber }
-
 import org.apache.pekko
 import pekko.{ Done, NotUsed }
 import pekko.actor.{ ActorRef, Cancellable, ClassicActorSystemProvider }
@@ -42,6 +40,8 @@ import pekko.util.FutureConverters._
 import pekko.util.JavaDurationConverters._
 import pekko.util.OptionConverters._
 import pekko.util.ccompat.JavaConverters._
+
+import org.reactivestreams.{ Publisher, Subscriber }
 
 /** Java API */
 object Source {
@@ -825,12 +825,15 @@ object Source {
    * @param read - function that reads data from opened resource. It is called each time backpressure signal
    *             is received. Stream calls close and completes when `read` returns None.
    * @param close - function that closes resource
+   * @tparam T - the element type
+   * @tparam R - the resource type
    */
-  def unfoldResource[T, S](
-      create: function.Creator[S],
-      read: function.Function[S, Optional[T]],
-      close: function.Procedure[S]): javadsl.Source[T, NotUsed] =
-    new Source(scaladsl.Source.unfoldResource[T, S](create.create _, (s: S) => read.apply(s).toScala, close.apply))
+  def unfoldResource[T, R](
+      create: function.Creator[R],
+      read: function.Function[R, Optional[T]],
+      close: function.Procedure[R]): javadsl.Source[T, NotUsed] =
+    new Source(scaladsl.Source.unfoldResource[T, R](create.create _, (resource: R) => read.apply(resource).toScala,
+      close.apply))
 
   /**
    * Start a new `Source` from some resource which can be opened, read and closed.
