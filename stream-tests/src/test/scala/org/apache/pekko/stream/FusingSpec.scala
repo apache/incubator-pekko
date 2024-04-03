@@ -103,7 +103,7 @@ class FusingSpec extends StreamSpec {
     }
 
     // an UnfoldResourceSource equivalent without an async boundary
-    case class UnfoldResourceNoAsyncBoundry[T, S](create: () => S, readData: (S) => Option[T], close: (S) => Unit)
+    case class UnfoldResourceNoAsyncBoundry[R, T](create: () => R, readData: (R) => Option[T], close: (R) => Unit)
         extends GraphStage[SourceShape[T]] {
       val stage_ = new UnfoldResourceSource(create, readData, close)
       override def initialAttributes: Attributes = Attributes.none
